@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { getProduct } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
-import BookCoverImage from "@/components/BookCoverImage";
 import type { Product } from "@/lib/types";
 
 export default function ProductDetailPage() {
@@ -77,12 +76,16 @@ export default function ProductDetailPage() {
         {/* Cover */}
         <div className="md:col-span-2">
           <div className="card overflow-hidden aspect-[3/4] bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-            <BookCoverImage
-              imageUrl={product.image_url}
-              alt={product.name}
-              imgClassName="w-full h-full object-cover"
-              fallback={<BookOpen className="w-24 h-24 text-blue-200" />}
-            />
+            {product.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={product.image_url}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <BookOpen className="w-24 h-24 text-blue-200" />
+            )}
           </div>
         </div>
 

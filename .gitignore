@@ -19,8 +19,47 @@ terraform.rc
 *.tfvars.json
 *.auto.tfvars
 *.auto.tfvars.json
-.cursor/*a
+
+# Node / Next.js
 node_modules/
-node_modules/*
-.env 
-.next/*
+.next/
+out/
+
+# Environment and secrets (keep *.example committed)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+dependency-reduced-pom.xml
+hs_err_pid*
+replay_pid*
+
+# Python (product-service, tooling)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE / OS
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+.DS_Store
+Thumbs.db

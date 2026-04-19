@@ -15,28 +15,6 @@ function authHeader(token: string) {
   return { Authorization: `Bearer ${token}` };
 }
 
-/** Coerce API product payload so stock / image / price always match frontend expectations. */
-function normalizeProduct(raw: unknown): Product {
-  const p = raw as Product & {
-    stockQuantity?: number;
-    imageUrl?: string | null;
-  };
-  const sq = p.stock_quantity ?? p.stockQuantity;
-  let stock_quantity = 0;
-  if (typeof sq === "number" && Number.isFinite(sq)) {
-    stock_quantity = Math.max(0, Math.floor(sq));
-  } else if (typeof sq === "string" && sq.trim() !== "") {
-    const n = parseInt(sq, 10);
-    if (Number.isFinite(n)) stock_quantity = Math.max(0, n);
-  }
-  const image_url =
-    (p.image_url ?? p.imageUrl) === undefined || (p.image_url ?? p.imageUrl) === null
-      ? null
-      : String(p.image_url ?? p.imageUrl);
-  const price = typeof p.price === "string" ? p.price : String(p.price ?? "0");
-  return { ...p, price, stock_quantity, image_url };
-}
-
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export async function register(data: {
@@ -69,15 +47,12 @@ export async function getProducts(params?: {
   search?: string;
 }): Promise<PaginatedProducts> {
   const res = await axios.get<PaginatedProducts>(`${PRODUCT_URL}/api/products`, { params });
-  return {
-    ...res.data,
-    items: res.data.items.map(normalizeProduct),
-  };
+  return res.data;
 }
 
 export async function getProduct(id: string): Promise<Product> {
   const res = await axios.get<Product>(`${PRODUCT_URL}/api/products/${id}`);
-  return normalizeProduct(res.data);
+  return res.data;
 }
 
 export async function getCategories(): Promise<Category[]> {

@@ -6,14 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database import Base, engine
 from .routers import categories, health, products
-from .seed import seed_database, sync_catalog_image_urls_from_seed
+from .seed import seed_database
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     seed_database()
-    sync_catalog_image_urls_from_seed()
     yield
 
 

@@ -39,8 +39,7 @@ PRODUCTS = [
         "price": Decimal("49.99"),
         "stock_quantity": 40,
         "isbn": "978-1617293726",
-        # Amazon CDN path 404s; Open Library serves stable ISBN-based covers
-        "image_url": "https://covers.openlibrary.org/b/isbn/9781617293726-L.jpg",
+        "image_url": "https://images-na.ssl-images-amazon.com/images/I/51E9YSVEGQL._SX397_BO1,204,203,200_.jpg",
         "category_name": "DevOps & Cloud",
     },
     {
@@ -50,7 +49,7 @@ PRODUCTS = [
         "price": Decimal("24.99"),
         "stock_quantity": 60,
         "isbn": "978-1942788294",
-        "image_url": "https://covers.openlibrary.org/b/isbn/9781942788294-L.jpg",
+        "image_url": "https://images-na.ssl-images-amazon.com/images/I/51cSFT0UQHL._SX331_BO1,204,203,200_.jpg",
         "category_name": "DevOps & Cloud",
     },
     {
@@ -70,7 +69,7 @@ PRODUCTS = [
         "price": Decimal("49.99"),
         "stock_quantity": 45,
         "isbn": "978-1492034025",
-        "image_url": "https://covers.openlibrary.org/b/isbn/9781492034025-L.jpg",
+        "image_url": "https://images-na.ssl-images-amazon.com/images/I/51h2tXNnFRL._SX379_BO1,204,203,200_.jpg",
         "category_name": "Architecture",
     },
     {
@@ -80,7 +79,7 @@ PRODUCTS = [
         "price": Decimal("44.99"),
         "stock_quantity": 25,
         "isbn": "978-1491929124",
-        "image_url": "https://covers.openlibrary.org/b/isbn/9781491929124-L.jpg",
+        "image_url": "https://images-na.ssl-images-amazon.com/images/I/51DLME6U6EL._SX379_BO1,204,203,200_.jpg",
         "category_name": "DevOps & Cloud",
     },
     {
@@ -100,7 +99,7 @@ PRODUCTS = [
         "price": Decimal("19.99"),
         "stock_quantity": 70,
         "isbn": "978-1521822807",
-        "image_url": "https://covers.openlibrary.org/b/isbn/9781521822807-L.jpg",
+        "image_url": "https://images-na.ssl-images-amazon.com/images/I/414sM8REYHL._SX379_BO1,204,203,200_.jpg",
         "category_name": "DevOps & Cloud",
     },
     {
@@ -110,7 +109,7 @@ PRODUCTS = [
         "price": Decimal("29.99"),
         "stock_quantity": 55,
         "isbn": "978-1736049112",
-        "image_url": "https://covers.openlibrary.org/b/isbn/9781736049112-L.jpg",
+        "image_url": "https://images-na.ssl-images-amazon.com/images/I/41I1M5I5+sL._SX379_BO1,204,203,200_.jpg",
         "category_name": "Architecture",
     },
 ]
@@ -130,10 +129,9 @@ def seed_database() -> None:
             category_map[cat.name] = cat
 
         for prod_data in PRODUCTS:
-            row = {**prod_data}
-            category_name = row.pop("category_name")
+            category_name = prod_data.pop("category_name")
             product = Product(
-                **row,
+                **prod_data,
                 category_id=category_map[category_name].id,
             )
             db.add(product)
@@ -143,32 +141,5 @@ def seed_database() -> None:
     except Exception as e:
         db.rollback()
         print(f"⚠️  Seeding skipped or failed: {e}")
-    finally:
-        db.close()
-
-
-def sync_catalog_image_urls_from_seed() -> None:
-    """Update image_url for known ISBNs so existing DBs pick up fixed cover URLs without reset."""
-    db = SessionLocal()
-    try:
-        isbn_to_url = {
-            p["isbn"]: p["image_url"]
-            for p in PRODUCTS
-            if p.get("isbn") and p.get("image_url") is not None
-        }
-        updated = 0
-        for isbn, url in isbn_to_url.items():
-            row = db.query(Product).filter(Product.isbn == isbn).first()
-            if row is None:
-                continue
-            if row.image_url != url:
-                row.image_url = url
-                updated += 1
-        if updated:
-            db.commit()
-            print(f"✅ Synced {updated} product cover URL(s) from seed catalog")
-    except Exception as e:
-        db.rollback()
-        print(f"⚠️  Cover URL sync skipped: {e}")
     finally:
         db.close()
