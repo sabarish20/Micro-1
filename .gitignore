@@ -19,4 +19,8 @@ terraform.rc
 *.tfvars.json
 *.auto.tfvars
 *.auto.tfvars.json
-.cursor/*
+.cursor/*a
+node_modules/
+node_modules/*
+.env 
+.next/*
