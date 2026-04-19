@@ -1,0 +1,15 @@
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/UserServiceApplication.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/config/SecurityConfig.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/controller/AuthController.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/controller/UserController.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/dto/AuthResponse.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/dto/LoginRequest.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/dto/RegisterRequest.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/dto/UpdateProfileRequest.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/dto/UserDto.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/exception/GlobalExceptionHandler.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/model/User.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/repository/UserRepository.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/security/JwtAuthFilter.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/service/JwtService.java
+/home/logofx/Documents/DevOps/Microservices-Project/Observe-1/user-service/src/main/java/com/shopnative/userservice/service/UserService.java

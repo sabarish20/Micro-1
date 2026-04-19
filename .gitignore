@@ -1,0 +1,22 @@
+# Terraform — generated / local / sensitive (commit .tf sources and .terraform.lock.hcl)
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+*.tfplan
+*.tfplan.*
+.terraform.tfstate.d/
+
+# Local variables (often secrets); use *.tfvars.example committed as a template instead
+*.tfvars
+*.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+.cursor/*

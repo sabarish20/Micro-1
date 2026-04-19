@@ -1,0 +1,79 @@
+# otel-collector-values.yaml — Deployment mode (gateway pattern)
+# Receives traces/logs from apps, processes, forwards to Tempo and Loki
+
+mode: deployment
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: 0.0.0.0:4318
+        grpc:
+          endpoint: 0.0.0.0:4317
+
+  processors:
+    batch:
+      timeout: 5s
+      send_batch_size: 1000
+
+    # Add resource attributes for Loki label extraction
+    resource:
+      attributes:
+        - action: insert
+          key: loki.resource.labels
+          value: service.name, k8s.namespace.name, k8s.pod.name, k8s.container.name
+
+    # Memory limiter — prevents OOM in minikube
+    memory_limiter:
+      check_interval: 1s
+      limit_mib: 200
+      spike_limit_mib: 50
+
+    # Filter out noisy health-check spans
+    filter/drop_health:
+      spans:
+        exclude:
+          match_type: strict
+          attributes:
+            - key: http.url
+              value: /healthz
+            - key: http.url
+              value: /readyz
+
+  exporters:
+    # Forward traces to Tempo
+    otlp/tempo:
+      endpoint: http://tempo.tracing.svc.cluster.local:4317
+      tls:
+        insecure: true
+
+    # Forward logs to Loki
+    loki:
+      endpoint: http://loki.logging.svc.cluster.local:3100/loki/api/v1/push
+
+    # Debug exporter — useful while learning (logs to collector stdout)
+    debug:
+      verbosity: normal
+
+  service:
+    pipelines:
+      traces:
+        receivers:  [otlp]
+        processors: [memory_limiter, filter/drop_health, batch]
+        exporters:  [otlp/tempo]
+
+      logs:
+        receivers:  [otlp]
+        processors: [memory_limiter, resource, batch]
+        exporters:  [loki]

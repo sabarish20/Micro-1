@@ -1,0 +1,3 @@
+locals {
+  envname = var.env
+}

@@ -1,0 +1,143 @@
+# kube-prometheus-stack-values.yaml
+# Tuned for local minikube (reduced resource requests)
+
+# ── Grafana ────────────────────────────────────────────────────────────────────
+grafana:
+  enabled: true
+  adminPassword: prom-operator
+  service:
+    type: ClusterIP
+
+  persistence:
+    enabled: false   # disable for minikube simplicity
+
+  # Pre-load datasources for all four observability pillars
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      uid: loki
+      url: http://loki.logging.svc.cluster.local:3100
+      access: proxy
+      jsonData:
+        maxLines: 5000
+        derivedFields:
+          - name: TraceID
+            matcherRegex: '"traceId":"(\w+)"'
+            url: '${__value.raw}'
+            datasourceUid: tempo
+
+    - name: Tempo
+      type: tempo
+      uid: tempo
+      url: http://tempo.tracing.svc.cluster.local:3100
+      access: proxy
+      jsonData:
+        tracesToLogsV2:
+          datasourceUid: loki
+          filterByTraceID: true
+        tracesToMetrics:
+          datasourceUid: prometheus
+        serviceMap:
+          datasourceUid: prometheus
+        nodeGraph:
+          enabled: true
+
+    - name: Pyroscope
+      type: grafana-pyroscope-datasource
+      uid: pyroscope
+      url: http://pyroscope.profiling.svc.cluster.local:4040
+      access: proxy
+
+  # Pre-install useful Kubernetes dashboards
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: default
+          orgId: 1
+          folder: 'Kubernetes'
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+
+  dashboards:
+    default:
+      kubernetes-cluster:
+        gnetId: 315
+        revision: 3
+        datasource: Prometheus
+      kubernetes-pods:
+        gnetId: 13332
+        revision: 1
+        datasource: Prometheus
+      node-exporter:
+        gnetId: 12019
+        revision: 1
+        datasource: Prometheus
+
+# ── Prometheus ─────────────────────────────────────────────────────────────────
+prometheus:
+  prometheusSpec:
+    retention: 7d          # keep 7 days of metrics in minikube
+    retentionSize: "5GB"
+
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+    # Discover ALL ServiceMonitors across all namespaces
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    serviceMonitorNamespaceSelector: {}
+
+    # Discover ALL PodMonitors across all namespaces
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelector: {}
+    podMonitorNamespaceSelector: {}
+
+    # Discover ALL PrometheusRules across all namespaces
+    ruleSelectorNilUsesHelmValues: false
+    ruleSelector: {}
+    ruleNamespaceSelector: {}
+
+    # Enable exemplars (needed for metrics → traces correlation)
+    enableFeatures:
+      - exemplar-storage
+
+# ── AlertManager ───────────────────────────────────────────────────────────────
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+# ── node-exporter ──────────────────────────────────────────────────────────────
+nodeExporter:
+  enabled: true
+
+# ── kube-state-metrics ─────────────────────────────────────────────────────────
+kubeStateMetrics:
+  enabled: true
+
+# ── Reduce resource usage on minikube ──────────────────────────────────────────
+kubeEtcd:
+  enabled: false   # not always accessible in minikube
+kubeScheduler:
+  enabled: false
+kubeControllerManager:
+  enabled: false

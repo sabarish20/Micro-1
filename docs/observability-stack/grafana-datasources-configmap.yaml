@@ -1,0 +1,78 @@
+# grafana-datasources-configmap.yaml
+# Automatically provisions all four observability datasources in Grafana
+# Apply after Grafana is running: kubectl apply -f grafana-datasources-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources-all-pillars
+  namespace: monitoring
+  labels:
+    grafana_datasource: "1"
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+
+      # ── Pillar 1: Metrics ──────────────────────────────────────────────────
+      - name: Prometheus
+        type: prometheus
+        uid: prometheus
+        url: http://kube-prom-stack-prometheus.monitoring.svc.cluster.local:9090
+        access: proxy
+        isDefault: true
+        jsonData:
+          timeInterval: "15s"
+          # Link metric exemplars to traces in Tempo
+          exemplarTraceIdDestinations:
+            - name: traceID
+              datasourceUid: tempo
+
+      # ── Pillar 2: Logs ─────────────────────────────────────────────────────
+      - name: Loki
+        type: loki
+        uid: loki
+        url: http://loki.logging.svc.cluster.local:3100
+        access: proxy
+        jsonData:
+          maxLines: 5000
+          derivedFields:
+            # Turn traceId values in log lines into clickable Tempo links
+            - name: TraceID
+              matcherRegex: '"traceId":"(\w+)"'
+              url: '${__value.raw}'
+              datasourceUid: tempo
+
+      # ── Pillar 3: Traces ───────────────────────────────────────────────────
+      - name: Tempo
+        type: tempo
+        uid: tempo
+        url: http://tempo.tracing.svc.cluster.local:3100
+        access: proxy
+        jsonData:
+          # Jump from a trace span to the matching Loki logs
+          tracesToLogsV2:
+            datasourceUid: loki
+            filterByTraceID: true
+            filterBySpanID: false
+            customQuery: false
+          # Show RED metrics alongside traces
+          tracesToMetrics:
+            datasourceUid: prometheus
+            queries:
+              - name: "Request rate"
+                query: "rate(http_requests_total{service=\"$${__span.tags[\"service.name\"]}\"}[5m])"
+              - name: "Error rate"
+                query: "rate(http_requests_total{service=\"$${__span.tags[\"service.name\"]}\", status=~\"5..\"}[5m])"
+          # Service map (topology view — needs Tempo metrics generator)
+          serviceMap:
+            datasourceUid: prometheus
+          # Node graph view of trace spans
+          nodeGraph:
+            enabled: true
+
+      # ── Pillar 4: Profiles ─────────────────────────────────────────────────
+      - name: Pyroscope
+        type: grafana-pyroscope-datasource
+        uid: pyroscope
+        url: http://pyroscope.profiling.svc.cluster.local:4040
+        access: proxy
